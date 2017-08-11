@@ -1,21 +1,62 @@
 import React, { Component } from 'react';
 import './App.css';
 import Screen from './components/Screen'
+import PokeSprite from './components/PokeSprite'
+
+let Pokedex = require('pokeapi-js-wrapper');
+let P = new Pokedex.Pokedex();
 
 class App extends Component {
   constructor(props){
     super(props)
+    this.updatedPokemon ={}
     this.state = {
       pokemon: {
-        name: "Pikachu",
-        type: "Electric",
+        name: "pikachu",
+        types: [{type:{name:"electric"}}],
         height: 4,
         weight: 60,
         genusName: "Mouse",
-        flavorText: "When several of these POKéMON gather, their electricity couldbuild and cause lightning storms.",
+        flavorText: "When several of these POKéMON gather, their electricity could build and cause lightning storms.",
         sprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png"
       }
     }
+    this.newPokemon = this.newPokemon.bind(this)
+    this.getPokemon = this.getPokemon.bind(this)
+  }
+
+  newPokemon(){
+    let newPokemon = prompt("Enter a pokemon:");
+    this.getPokemon(newPokemon);
+  }
+
+  getPokemon(pokemon){
+    P.getPokemonByName(pokemon)
+    .then(response => {
+      this.updatedPokemon = {
+        id: response.id,
+        name: response.name,
+        types: response.types,
+        height: response.height,
+        weight: response.weight,
+        genusName: null,
+        flavorText: null,
+        sprite: response.sprites.front_default
+      }
+      console.log(this.updatedPokemon);
+    this.getSpecies(this.updatedPokemon.id)
+    })
+  }
+
+  getSpecies(id){
+    P.getPokemonSpeciesByName(id)
+    .then(response => {
+      let index = response.flavor_text_entries.length - 1
+      this.updatedPokemon.genusName = response.genera[0].genus
+      this.updatedPokemon.flavorText = response.flavor_text_entries[index].flavor_text
+
+      this.setState({pokemon: this.updatedPokemon})
+    })
   }
 
   render() {
@@ -26,7 +67,7 @@ class App extends Component {
     <div id="bg_curve1_left"></div>
     <div id="bg_curve2_left"></div>
     <div id="curve1_left">
-      <div id="buttonGlass">
+      <div onClick={this.newPokemon} id="buttonGlass">
         <div id="reflect"> </div>
       </div>
       <div id="miniButtonGlass1"></div>
@@ -45,7 +86,7 @@ class App extends Component {
         <div id="buttontopPicture2"></div>
       </div>
       <div id="picture">
-        <img src={this.state.pokemon.sprite} alt={this.state.pokemon.name} height="200" />
+        <PokeSprite pokemon={this.state.pokemon} />
       </div>
       <div id="buttonbottomPicture"></div>
       <div id="speakers">
